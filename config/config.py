@@ -12,8 +12,22 @@ class TgBot:
     admins: list[str]
 
 @dataclass
+class DatabaseConfig:
+    name: str
+    host: str
+    port: int
+    user: str
+    password: str
+
+@dataclass
+class RedisConfig:
+    host: str
+
+@dataclass
 class Config:
     bot: TgBot
+    db: DatabaseConfig
+    redis: RedisConfig
     log: LoggingConfig
 
 def loadConfig(path: str | None = None) -> Config:
@@ -22,7 +36,17 @@ def loadConfig(path: str | None = None) -> Config:
     return Config(
         bot=TgBot(
             TOKEN=env('TOKEN'),
-            admins=env('admins')
+            admins=env('ADMINS_IDS')
+        ),
+        db=DatabaseConfig(
+            name=env("POSTGRES_DB"),
+            host=env("POSTGRES_HOST"),
+            port=env.int("POSTGRES_PORT"),
+            user=env("POSTGRES_USER"),
+            password=env("POSTGRES_PASSWORD")
+        ),
+        redis=RedisConfig(
+            host=env('REDIS_HOST')
         ),
         log=LoggingConfig(
             level=env('loggingLevel'),

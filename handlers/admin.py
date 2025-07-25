@@ -13,38 +13,40 @@ from keyboards import (adminGetStarted,
                        adminModerator)
 
 adminRouter = Router()
+adminRouter.message.filter(IsAdminFilter())
+adminRouter.callback_query.filter(IsAdminFilter())
 
-@adminRouter.callback_query(F.data == 'moderator', StateFilter(default_state), IsAdminFilter())
+@adminRouter.callback_query(F.data == 'moderator', StateFilter(default_state))
 async def adminAddModeratorUsername(call: CallbackQuery) -> None:
     await call.message.edit_text(lexRU['message']['moderator'],
                                  reply_markup=adminModerator())
 
-@adminRouter.callback_query(F.data == 'addModerator', StateFilter(default_state), IsAdminFilter())
+@adminRouter.callback_query(F.data == 'addModerator', StateFilter(default_state))
 async def adminAddModer(call: CallbackQuery, state: FSMContext) -> None:
     await call.message.edit_text(lexRU['message']['addModerator'],
                                  reply_markup=cancelKeyboard())
     await state.set_state(TheAdminFSM.username)
 
-@adminRouter.message(F.text.startswith('@'), StateFilter(TheAdminFSM.username), IsAdminFilter())
+@adminRouter.message(F.text.startswith('@'), StateFilter(TheAdminFSM.username))
 async def adminUsername(msg: Message, state: FSMContext) -> None:
     db['moderators'].append(msg.text)
     await msg.answer(lexRU['message']['successModer'],
                      reply_markup=adminGetStarted())
     await state.clear()
 
-@adminRouter.callback_query(F.data.contains('@'), StateFilter(default_state), IsAdminFilter())
+@adminRouter.callback_query(F.data.contains('@'), StateFilter(default_state))
 async def adminSureToDeleteModer(call: CallbackQuery, state: FSMContext) -> None:
     db['toDelete'][call.from_user.id] = call.data
     await call.message.edit_text(lexRU['message']['areSure'],
                                  reply_markup=yesOrNo())
     await state.set_state(TheAdminFSM.deleteModer)
 
-@adminRouter.message(StateFilter(TheAdminFSM.username), IsAdminFilter())
+@adminRouter.message(StateFilter(TheAdminFSM.username))
 async def adminIrregularUsername(msg: Message) -> None:
     await msg.answer(lexRU['message']['irregularData'],
                      reply_markup=cancelKeyboard())
 
-@adminRouter.callback_query(F.data == 'yes', StateFilter(TheAdminFSM.deleteModer), IsAdminFilter())
+@adminRouter.callback_query(F.data == 'yes', StateFilter(TheAdminFSM.deleteModer))
 async def adminDeleteModer(call: CallbackQuery, state: FSMContext) -> None:
     db['moderators'].remove(db['toDelete'][call.from_user.id])
     await call.message.edit_text(lexRU['message']['successModer'],
