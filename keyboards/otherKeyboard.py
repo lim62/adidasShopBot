@@ -13,11 +13,17 @@ def cancelKeyboard() -> InlineKeyboardMarkup:
         [InlineKeyboardButton(text=lexRU['button']['cancel'], callback_data='cancel')]
         ])
 
-def catalogKeyboard(toDisplay: dict, inCategory: bool = False, inProduct: bool = False, isUser: bool = False) -> InlineKeyboardMarkup:
+def catalogKeyboard(
+        cats: list,
+        prods: list,
+        inCategory: bool = False,
+        inProduct: bool = False,
+        isUser: bool = False
+    ) -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardBuilder()
     if not inProduct:
-        keyboard.row(*(InlineKeyboardButton(text=name, callback_data=f'{name}Category') for name, thing in toDisplay.items() if type(thing) is dict), width=1)\
-        .row(*(InlineKeyboardButton(text=name, callback_data=f'{name}Product') for name, thing in toDisplay.items() if type(thing) is list), width=1)
+        keyboard.row(*(InlineKeyboardButton(text=name, callback_data=f'{name}Category') for name in [row[0] for row in cats]), width=1)\
+        .row(*(InlineKeyboardButton(text=name, callback_data=f'{name}Product') for name in [row[0] for row in prods]), width=1)
         if not isUser:
             keyboard.row(InlineKeyboardButton(text=lexRU['button']['addCategory'], callback_data='addCategory'), width=1)\
             .row(InlineKeyboardButton(text=lexRU['button']['addProduct'], callback_data='addProduct'), width=1)

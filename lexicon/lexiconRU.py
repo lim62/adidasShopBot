@@ -1,4 +1,4 @@
-from database import db
+from database import db, getFromTable
 
 lexRU = {\
     'message': {
@@ -50,7 +50,7 @@ def loadProduct(toDisplay: list) -> str:
 
 def getDatabase() -> str:
     text: str = lexRU['message']['database'] + '\n\n'
-    for username in db['users'].keys():
+    for username in [row[1] for row in getFromTable('utils')]:
         text += (username + '\n')
     return text
 

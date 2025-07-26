@@ -1,5 +1,5 @@
 from psycopg2 import connect
-from psycopg2.extensions import connection, cursor
+from psycopg2.extensions import connection
 from config import Config, loadConfig
 
 def getConnection() -> connection:
@@ -9,6 +9,3 @@ def getConnection() -> connection:
                    dbname=config.db.name,
                    user=config.db.user,
                    password=config.db.password)
-
-def getCursor() -> cursor:
-    return getConnection().cursor()

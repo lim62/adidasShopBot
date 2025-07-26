@@ -21,7 +21,9 @@ class DatabaseConfig:
 
 @dataclass
 class RedisConfig:
+    db: str
     host: str
+    port: int
 
 @dataclass
 class Config:
@@ -46,7 +48,9 @@ def loadConfig(path: str | None = None) -> Config:
             password=env("POSTGRES_PASSWORD")
         ),
         redis=RedisConfig(
-            host=env('REDIS_HOST')
+            db=env('REDIS_DB'),
+            host=env('REDIS_HOST'),
+            port=env.int('REDIS_PORT')
         ),
         log=LoggingConfig(
             level=env('loggingLevel'),

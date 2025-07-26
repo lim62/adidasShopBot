@@ -1,7 +1,7 @@
 from aiogram.filters import BaseFilter
 from aiogram.types import Message
 from config import Config, loadConfig
-from database import db
+from database import getFromTable
 
 config: Config = loadConfig()
 
@@ -11,8 +11,9 @@ class IsAdminFilter(BaseFilter):
         msg: Message = None,
         id: int = None
     ) -> bool:
-        return (str(msg.from_user.id) in config.bot.admins) or\
-            (str(id) in config.bot.admins)
+        toCheck = config.bot.admins
+        return (str(msg.from_user.id) in toCheck) or\
+            (str(id) in toCheck)
     
 class IsModerFilter(BaseFilter):
     async def __call__(
@@ -20,5 +21,6 @@ class IsModerFilter(BaseFilter):
         msg: Message = None,
         username: str = None
     ) -> bool:
-        return (f'@{msg.from_user.username}' in db['moderators']) or\
-            (username in db['moderators'])
+        toCheck = [row[0] for row in getFromTable('moder')]
+        return (f'@{msg.from_user.username}' in toCheck) or\
+            (username in toCheck)

@@ -4,5 +4,9 @@ from config import Config, loadConfig
 
 config: Config = loadConfig()
 
-redis = Redis(host=config.redis.host)
+redis = Redis(db=config.redis.db,
+              host=config.redis.host,
+              port=config.redis.port)
 stogare = RedisStorage(redis=redis)
+
+redis.mset()

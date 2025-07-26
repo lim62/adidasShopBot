@@ -2,7 +2,7 @@ from typing import Any, Callable, Awaitable
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, User
 from config import Config, loadConfig
-from database import db
+from database import getFromTable
 
 config: Config = loadConfig()
 
@@ -16,7 +16,7 @@ class TheRoleMiddleware(BaseMiddleware):
         user: User = data['event_from_user']
         if str(user.id) in config.bot.admins:
             data['role'] = 'admin'
-        elif f'@{user.username}' in db['moderators']:
+        elif f'@{user.username}' in [row[0] for row in getFromTable('moder')]:
             data['role'] = 'moder'
         else:
             data['role'] = 'user'

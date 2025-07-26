@@ -6,7 +6,10 @@ from aiogram.fsm.context import FSMContext
 from lexicon import lexRU
 from filters import IsAdminFilter
 from states import TheAdminFSM
-from database import db
+from database import (addToTable,
+                      updateFromTable,
+                      deleteFromTable,
+                      getFromTable)
 from keyboards import (adminGetStarted,
                        cancelKeyboard,
                        yesOrNo,
@@ -29,14 +32,14 @@ async def adminAddModer(call: CallbackQuery, state: FSMContext) -> None:
 
 @adminRouter.message(F.text.startswith('@'), StateFilter(TheAdminFSM.username))
 async def adminUsername(msg: Message, state: FSMContext) -> None:
-    db['moderators'].append(msg.text)
+    addToTable('moder', {'username': msg.text})
     await msg.answer(lexRU['message']['successModer'],
                      reply_markup=adminGetStarted())
     await state.clear()
 
 @adminRouter.callback_query(F.data.contains('@'), StateFilter(default_state))
 async def adminSureToDeleteModer(call: CallbackQuery, state: FSMContext) -> None:
-    db['toDelete'][call.from_user.id] = call.data
+    updateFromTable('utils', {'id': call.from_user.id, 'toDelete': call.data})
     await call.message.edit_text(lexRU['message']['areSure'],
                                  reply_markup=yesOrNo())
     await state.set_state(TheAdminFSM.deleteModer)
@@ -48,7 +51,9 @@ async def adminIrregularUsername(msg: Message) -> None:
 
 @adminRouter.callback_query(F.data == 'yes', StateFilter(TheAdminFSM.deleteModer))
 async def adminDeleteModer(call: CallbackQuery, state: FSMContext) -> None:
-    db['moderators'].remove(db['toDelete'][call.from_user.id])
+    deleteFromTable('moder',
+                    'username',
+                    getFromTable('utils', f'WHERE id = {call.from_user.id}')[0][4])
     await call.message.edit_text(lexRU['message']['successModer'],
                                  reply_markup=adminGetStarted())
     await state.clear()

@@ -5,7 +5,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 from config import Config, loadConfig
-from database import stogare
+from database import stogare, loadTables
 from middlewares import TheRoleMiddleware
 from handlers import (adminRouter,
                       moderRouter,
@@ -22,6 +22,7 @@ async def main() -> None:
     dp = Dispatcher(storage=stogare)
     dp.include_routers(adminRouter, moderRouter, userRouter, otherRouter)
     dp.update.outer_middleware(TheRoleMiddleware())
+    loadTables()
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 

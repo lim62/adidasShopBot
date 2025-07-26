@@ -10,19 +10,24 @@ from keyboards import (adminGetStarted,
                        userGetStarted,
                        catalogKeyboard)
 from utils import failFunction
-from database import db
+from database import (db,
+                      addToTable,
+                      getFromTable)
 from lexicon import lexRU, loadProduct
 
 otherRouter = Router()
 
 @otherRouter.message(CommandStart(), StateFilter(default_state))
-async def allStart(msg: Message, state: FSMContext, role: str) -> None:
-    db['users'][f'@{msg.from_user.username}'] = msg.from_user.id
-    db['position'][msg.from_user.id] = ''
-    if role in ('admin', 'moder'):
-        db['toAdd'][msg.from_user.id] = []
-    else: 
-        db['orders'][f'@{msg.from_user.username}'] = []
+async def allStart(msg: Message, role: str) -> None:
+    if msg.from_user.id not in [row[0] for row in getFromTable('utils')]:
+        addToTable('utils', {'id': msg.from_user.id,
+                            'username': f'@{msg.from_user.username}',
+                            'position': '',
+                            'toAdd': '',
+                            'toDelete': ''})
+    if role == 'admin':
+        if f'@{msg.from_user.username}' not in [row[0] for row in getFromTable('moder')]:
+            addToTable('moder', {'username': f'@{msg.from_user.username}'})
     match role:
         case 'admin':
             text = lexRU['message']['adminStart']
@@ -42,7 +47,8 @@ async def userCatalog(call: CallbackQuery, role: str) -> None:
     await call.message.delete()
     await call.message.answer_photo(photo=lexRU['images']['logo'],
                                     caption=lexRU['message']['catalog'],
-                                    reply_markup=catalogKeyboard(toDisplay=db['products'],
+                                    reply_markup=catalogKeyboard(cats=getFromTable('categories'),
+                                                                 prods=getFromTable('products'),
                                                                  isUser=isUser))
 
 @otherRouter.callback_query(F.data.contains('Category'))
