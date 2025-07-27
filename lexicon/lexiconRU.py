@@ -46,7 +46,7 @@ lexRU = {\
 }
 
 def loadProduct(product: list) -> str:
-    return f'<b>{product[0]}</b>\n\n{product[1]}\n\nЦена: {product[2]} рублей'
+    return f'<b>{product[0]}</b>\n\n{product[1]}\n\n<b>Цена:</b> {product[2]} рублей'
 
 def getDatabase() -> str:
     text: str = lexRU['message']['database'] + '\n\n'

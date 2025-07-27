@@ -80,10 +80,15 @@ async def showProduct(call: CallbackQuery, role: str) -> None:
         {'id': call.from_user.id},
         {'position': f"{position}{name}:"}
     )
+    products = getFromTable('products', f"WHERE position = '{position}'")
+    trueProduct: tuple
+    for product in products:
+        if product[0] == name:
+            trueProduct = product
+            break
     isUser = True if role == 'user' else False
-    await call.message.edit_media(media=InputMediaPhoto(media=getFromTable('products', f"WHERE position = '{position}'")[0][3]))
-    await call.message.edit_caption(caption=loadProduct(getFromTable('products',
-                                                                     f"WHERE position = '{position}'")[0]),
+    await call.message.edit_media(media=InputMediaPhoto(media=trueProduct[3]))
+    await call.message.edit_caption(caption=loadProduct(trueProduct),
                                     reply_markup=catalogKeyboard(inProduct=True,
                                                                  isUser=isUser))
 
