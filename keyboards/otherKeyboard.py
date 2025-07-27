@@ -14,8 +14,8 @@ def cancelKeyboard() -> InlineKeyboardMarkup:
         ])
 
 def catalogKeyboard(
-        cats: list,
-        prods: list,
+        cats: list = [],
+        prods: list = [],
         inCategory: bool = False,
         inProduct: bool = False,
         isUser: bool = False

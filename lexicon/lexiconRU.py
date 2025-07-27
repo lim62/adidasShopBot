@@ -1,4 +1,4 @@
-from database import db, getFromTable
+from database import getFromTable
 
 lexRU = {\
     'message': {
@@ -45,8 +45,8 @@ lexRU = {\
     }
 }
 
-def loadProduct(toDisplay: list) -> str:
-    return f'<b>{toDisplay[0]}</b>\n\n{toDisplay[1]}\n\nЦена: {toDisplay[2]} рублей'
+def loadProduct(product: list) -> str:
+    return f'<b>{product[0]}</b>\n\n{product[1]}\n\nЦена: {product[2]} рублей'
 
 def getDatabase() -> str:
     text: str = lexRU['message']['database'] + '\n\n'
@@ -56,7 +56,6 @@ def getDatabase() -> str:
 
 def getOrders() -> str:
     text = lexRU['message']['orders'] + '\n\n'
-    for username, things in db['orders'].items():
-        for thing in things:
-            text += f'{username} заказал "{thing}"\n'
+    for username, thing in getFromTable('orders'):
+        text += f'{username} заказал "{thing}"\n'
     return text

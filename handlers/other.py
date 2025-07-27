@@ -10,8 +10,8 @@ from keyboards import (adminGetStarted,
                        userGetStarted,
                        catalogKeyboard)
 from utils import failFunction
-from database import (db,
-                      addToTable,
+from database import (addToTable,
+                      updateFromTable,
                       getFromTable)
 from lexicon import lexRU, loadProduct
 
@@ -44,48 +44,53 @@ async def allStart(msg: Message, role: str) -> None:
 @otherRouter.callback_query(F.data == 'catalog')
 async def userCatalog(call: CallbackQuery, role: str) -> None:
     isUser = True if role == 'user' else False
+    updateFromTable('utils',
+                    {'id': call.from_user.id},
+                    {'position': '', 'toAdd': ''})
     await call.message.delete()
     await call.message.answer_photo(photo=lexRU['images']['logo'],
                                     caption=lexRU['message']['catalog'],
-                                    reply_markup=catalogKeyboard(cats=getFromTable('categories'),
-                                                                 prods=getFromTable('products'),
+                                    reply_markup=catalogKeyboard(cats=getFromTable('categories', 'WHERE position = \'\''),
+                                                                 prods=getFromTable('products', 'WHERE position = \'\''),
                                                                  isUser=isUser))
 
 @otherRouter.callback_query(F.data.contains('Category'))
-async def moderChangeCategory(call: CallbackQuery, role: str) -> None:
+async def changeCategory(call: CallbackQuery, role: str) -> None:
     category = str(call.data)[:-8]
-    db['position'][call.from_user.id] += f'{category}:'
-    position = db['position'][call.from_user.id].split(':')[:-1]
-    toDisplay: dict = db['products']
-    for cat in position:
-        toDisplay = toDisplay[cat]
+    position = getFromTable('utils', f'WHERE id = {call.from_user.id}')[0][2]
+    updateFromTable(
+        'utils',
+        {'id': call.from_user.id},
+        {'position': f"{position}{category}:"}
+    )
+    position = getFromTable('utils', f'WHERE id = {call.from_user.id}')[0][2]
     isUser = True if role == 'user' else False
     await call.message.edit_caption(caption=f'<b>{category}:</b>',
-                                    reply_markup=catalogKeyboard(toDisplay,
+                                    reply_markup=catalogKeyboard(cats=getFromTable('categories', f"WHERE position = '{position}'"),
+                                                                 prods=getFromTable('products', f"WHERE position = '{position}'"),
                                                                  inCategory=True,
                                                                  isUser=isUser))
 
 @otherRouter.callback_query(F.data.contains('Product'))
-async def moderShowProduct(call: CallbackQuery, role: str) -> None:
+async def showProduct(call: CallbackQuery, role: str) -> None:
     name = str(call.data)[:-7]
-    position = db['position'][call.from_user.id].split(':')[:-1]
-    array: dict = db['products']
-    for cat in position:
-        array = array[cat]
-    toDisplay = array[name]
-    db['position'][call.from_user.id] += f'{name}:'
+    position = getFromTable('utils', f'WHERE id = {call.from_user.id}')[0][2]
+    updateFromTable(
+        'utils',
+        {'id': call.from_user.id},
+        {'position': f"{position}{name}:"}
+    )
     isUser = True if role == 'user' else False
-    await call.message.edit_media(media=InputMediaPhoto(media=toDisplay[-1]))
-    await call.message.edit_caption(caption=loadProduct(toDisplay),
-                                    reply_markup=catalogKeyboard(toDisplay,
-                                                                 inProduct=True,
+    await call.message.edit_media(media=InputMediaPhoto(media=getFromTable('products', f"WHERE position = '{position}'")[0][3]))
+    await call.message.edit_caption(caption=loadProduct(getFromTable('products',
+                                                                     f"WHERE position = '{position}'")[0]),
+                                    reply_markup=catalogKeyboard(inProduct=True,
                                                                  isUser=isUser))
 
 @otherRouter.callback_query(F.data == 'no')
 @otherRouter.callback_query(F.data == 'cancel')
 async def allNo(call: CallbackQuery, state: FSMContext, role: str) -> None:
     info = failFunction(role)
-    db['position'][call.from_user.id] = ''
     await call.message.edit_text(text=info[0],
                                  reply_markup=info[1])
     await state.clear()
@@ -93,7 +98,6 @@ async def allNo(call: CallbackQuery, state: FSMContext, role: str) -> None:
 @otherRouter.callback_query(F.data == 'cancelPhoto')
 async def userCancelPhoto(call: CallbackQuery, state: FSMContext, role: str) -> None:
     info = failFunction(role)
-    db['position'][call.from_user.id] = ''
     await call.message.delete()
     await call.message.answer(text=info[0],
                               reply_markup=info[1])

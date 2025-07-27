@@ -39,7 +39,9 @@ async def adminUsername(msg: Message, state: FSMContext) -> None:
 
 @adminRouter.callback_query(F.data.contains('@'), StateFilter(default_state))
 async def adminSureToDeleteModer(call: CallbackQuery, state: FSMContext) -> None:
-    updateFromTable('utils', {'id': call.from_user.id, 'toDelete': call.data})
+    updateFromTable('utils',
+                    {'id': call.from_user.id},
+                    {'toDelete': call.data})
     await call.message.edit_text(lexRU['message']['areSure'],
                                  reply_markup=yesOrNo())
     await state.set_state(TheAdminFSM.deleteModer)

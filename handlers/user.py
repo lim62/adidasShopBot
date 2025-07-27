@@ -4,7 +4,8 @@ from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from lexicon import lexRU
 from states import TheUserFSM
-from database import db
+from database import (addToTable,
+                      getFromTable)
 from keyboards import (userGetStarted,
                        yesOrNo)
 
@@ -19,12 +20,11 @@ async def userSureToBuy(call: CallbackQuery, state: FSMContext) -> None:
 
 @userRouter.callback_query(F.data == 'yes', StateFilter(TheUserFSM.sureToBuy))
 async def userBuy(call: CallbackQuery, state: FSMContext) -> None:
-    position = db['position'][call.from_user.id].split(':')[:-1]
-    array: dict = db['products']
-    for cat in position:
-        array = array[cat]
-    db['orders'][f'@{call.from_user.username}'].append(array[0])
-    db['position'][call.from_user.id] = ''
+    position = getFromTable('utils', f'WHERE id = {call.from_user.id}')[0][2].split(':')[:-1]
+    name = position[-1]
+    addToTable('orders',
+               {'username': f'@{call.from_user.username}', 
+                'product': name})
     await state.clear()
     await call.message.edit_text(lexRU['message']['successUser'],
                                  reply_markup=userGetStarted())
