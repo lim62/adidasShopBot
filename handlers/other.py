@@ -65,7 +65,7 @@ async def changeCategory(call: CallbackQuery, role: str) -> None:
     )
     position = getFromTable('utils', f'WHERE id = {call.from_user.id}')[0][2]
     isUser = True if role == 'user' else False
-    await call.message.edit_caption(caption=f'<b>{category}:</b>',
+    await call.message.edit_caption(caption=f'<b>{category}: 👇</b>',
                                     reply_markup=catalogKeyboard(cats=getFromTable('categories', f"WHERE position = '{position}'"),
                                                                  prods=getFromTable('products', f"WHERE position = '{position}'"),
                                                                  inCategory=True,
